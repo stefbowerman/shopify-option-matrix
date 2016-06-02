@@ -4,10 +4,10 @@ Use instead of Shopify option_selection.js to split product variants into a matr
 Inspired by the difficulty of placing wholesale orders on a Shopify store.
 
 __Before__
-![Before](/stefbowerman/shopify-option-matrix/raw/master/example-before.jpg?raw=true "Before")
+![Before](https://raw.githubusercontent.com/stefbowerman/shopify-option-matrix/master/example-before.jpg "Before")
 
 __After__
-![After](/stefbowerman/shopify-option-matrix/raw/master/example-after.jpg?raw=true "After")
+![After](https://raw.githubusercontent.com/stefbowerman/shopify-option-matrix/master/example-after.jpg "After")
 
 ### Usage
 
