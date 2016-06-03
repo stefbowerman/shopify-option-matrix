@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shopify Option Matrix Example</title>
+  <style type="text/css">
+    body {
+      padding-top: 10%;
+      color: #333;
+      font-family: monospace;
+      font-size: 13px;
+      text-align: center;
+    }
+    input {
+      padding: 3px 8px;
+      text-align: center;
+    }
+    .product {
+      width: 800px;
+      max-width: 100%;
+      padding: 0 20px;
+      margin: 20px auto;
+    }
+    .product table {
+      width: 100%;
+    }
+    .product table th {
+      font-weight: normal;
+    }
+    .product table td {
+      padding: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Shopify Option Matrix Example</h2>
+  <div class="product">
+    <select id="productSelect">
+      <option>White / Small</option>
+      <option>White / Medium</option>
+      <option>White / Large</option>
+      <option>White / X-Large</option>
+      <option>Sand / Small</option>
+      <option>Sand / Medium</option>
+      <option>Sand / Large</option>
+      <option>Sand / X-Large</option>
+    </select>
+  </div>
+
+  <!-- Only required for the form submit code.  Both option_matrix.js and option_selection.js are standalone -->
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.js"></script>
+  
+  <!-- Need to include this because it exposes Shopify.Product -->
+  <script type="text/javascript" src="./option_selection.js"></script>
+
+  <!-- Need to include this because it exposes Shopify.OptionMatrix -->
+  <script type="text/javascript" src="./option_matrix.js"></script>
+
+  <!-- Exposes window.product.  Instance of Shopify Product Resource (https://docs.shopify.com/api/product) -->
+  <script type="text/javascript" src="./product.js"></script>
+
+  <script>
+
+    (function($){
+
+      var $form = $('#addToCartForm');
+      var matrix = new Shopify.OptionMatrix('productSelect', {
+          product: product
+        });
+
+      // Shopify.OptionMatrix can return false if the product doesn't have the proper variant options.
+      // If this is the case, the select tag is not overwritten and we should let the form submit normally
+      if(matrix){
+        $form.on('submit', function(e){
+          e.preventDefault();
+          onFormSubmit();
+        });     
+      }
+
+      function handleRequestQueue(queue){
+        if(queue.length){
+          var request = queue.shift();
+          $.ajax({
+            url      : '/cart/add.js',
+            type     : 'POST',
+            dataType : 'json',
+            data     : 'quantity=' + request.quantity + '&id=' + request.variantId
+          })
+          .always( function(){
+            handleRequestQueue(queue);
+          });
+        }
+        else {
+          document.location.href = '/cart';
+        }
+      };
+
+      function onFormSubmit(){
+        var requestQueue = [];
+        var $qtyInputs = $form.find('input.variant-qty');
+
+        // Create a queue of objects, one for each variant ID that has a quantity > 0
+        for (var i = $qtyInputs.length - 1; i >= 0; i--) {
+          var $input = $qtyInputs.eq(i);
+          var qty = parseInt( $input.val() );
+          if(!isNaN(qty) && qty != 0) {
+            requestQueue.push({
+              variantId : $input.data('variant-id'),
+              quantity  : qty
+            });
+          }
+        };
+
+        if( !requestQueue.length ){
+          alert('Please select products before adding to cart');
+          return false;
+        }
+
+        handleRequestQueue( requestQueue );
+      };
+    })(jQuery);
+  </script>
+</body>
+</html>
